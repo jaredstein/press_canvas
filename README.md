@@ -1,7 +1,7 @@
 # press_canvas
 Students with WordPress sites can submit their blog Posts directly to the Canvas LMS to fulfill a course assignment.
 
-Note: The plugin works, but is by no means clean or refined at this point. Please consider it *beta*.
+Note: The plugin works, but is by no means clean or refined at this point. In fact, you'll probably hate my code. Please consider it *beta*.
 
 ##Background
 Canvas is a learning management system (LMS) that makes it easy for teachers to share course content, schedule assignments, and interact with students. In a world of connected, social media, many people are developing their own digital identity in their own space on the open web, outside of the LMS -- using services like WordPress. Students especially are defining who they are, and sharing their work with others, often as digital portfolios that they expect to carry into their post-schooling careers.
