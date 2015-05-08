@@ -4,7 +4,7 @@ Students with WordPress sites can submit their blog Posts directly to the Canvas
 Note: The plugin works, but is by no means clean or refined at this point. Please consider it *beta*.
 
 ##Background
-Canvas is an learning management system (LMS) that makes it easy for teachers to share course content, schedule assignments, and interact with students. In a world of connected, social media, many people are developing their own digital identity in their own space on the open web, outside of the LMS -- using services like WordPress. Students especially are defining who they are, and sharing their work with others, often as digital portfolios that they expect to carry into their post-schooling careers.
+Canvas is a learning management system (LMS) that makes it easy for teachers to share course content, schedule assignments, and interact with students. In a world of connected, social media, many people are developing their own digital identity in their own space on the open web, outside of the LMS -- using services like WordPress. Students especially are defining who they are, and sharing their work with others, often as digital portfolios that they expect to carry into their post-schooling careers.
 
 How can we encourage students to create in their own, digital spaces (e.g. WordPress) in a way that seamlessly connects to the more formal, teacher-owned course frameworks (e.g. a learning management system like Canvas)? 
 
