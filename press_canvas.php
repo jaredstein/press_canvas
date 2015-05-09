@@ -20,12 +20,12 @@ Author URI: http://jaredstein.org
     GNU General Public License for more details.
 */
 
-/** @todo
+/* @todo
 VERIFY On publish, submit
 VERIFY Confirmation message
  */
 
- /*FUTURE DEV
+/* FUTURE DEV
 Cache list of courses so we don't request it every time a Post is loaded, or at least wait for checkbox
 Assignments ordered by date
 Add comment with Submission URL
@@ -99,7 +99,7 @@ function prcnvs_load_scripts($hook) {
 }
 
 // WP add this function in
-add_action('admin_enqueue_scripts', 'prcnvs_load_scripts');
+add_action( 'admin_enqueue_scripts', 'prcnvs_load_scripts' );
 
 
 /**
@@ -113,7 +113,7 @@ function prcnvs_meta_box($hook) {
 	// Ensure our variables reference global variables
 	global $prcnvs, $post, $prcnvs_link;
 	
-//var_dump($post);
+	//var_dump($post);
 	
 	// Ensure WP HTTP API is included
 	if( !class_exists( 'WP_Http' ) ){
@@ -129,8 +129,7 @@ function prcnvs_meta_box($hook) {
 	}
 	
 	//Create the HTML for the Press+Canvas form elements
-	//TODO
-	// Replace SELECT and OPTIONS with RADIO list so we can hyperlink to the assignment itself or have a description on hover
+
 	?>
 	<input type="checkbox" name="prcnvs_submit_url" id="prcnvs_submit_url" value="prcnvs_submit" 
 	disabled />
@@ -151,7 +150,7 @@ function prcnvs_meta_box($hook) {
 
 // Tell WP to use the WP Ajax for the action defined in the Javascript
 // Using the PHP function in this page
-add_action('wp_ajax_prcnvs_get_assignments', 'prcnvs_course_assignments');
+add_action( 'wp_ajax_prcnvs_get_assignments', 'prcnvs_course_assignments' );
 
 //Set up the Press+Canvas function to be called by Ajax
 function prcnvs_course_assignments($post){
@@ -174,134 +173,145 @@ function prcnvs_course_assignments($post){
 		)
 	);
 
-	//set up the Canvas API Profile request using WP's HTTP API
-	$cnvs_courses_request = wp_remote_request( $cnvs_api_base."/courses", $cnvs_api_params);
-
-	//echo $cnvs_base."/courses?access_token=".$cnvs_token."<br/>";
-
-	//make sure we actually received a winning response from Canvas
-	if(!wp_remote_retrieve_response_code($cnvs_courses_request) == 200){
-		print "<p>Canvas connection error " . wp_remote_retrieve_response_code($cnvs_assignments_request)."! Please check <a href=\"/wp-admin/options-general.php?page=prscnvs_setup\">your Press+Canvas Settings</a> or try again.</p>";
-		return;
-	}
-		
-	//json decode the request results
-	$cnvs_courselist = json_decode(wp_remote_retrieve_body($cnvs_courses_request),true);
+	/* TODO
+	// Add similar self-check to setup to verify access token & domain
+	// Move courses check to initiation of widget
+	*/
 	
-	//Prepare to get the assignments for each course
-	//change api parameters for assignments
-	$cnvs_api_params = array(
+	// set up the Canvas API Profile request using WP's HTTP API
+	$cnvs_courses_request = wp_remote_request( $cnvs_api_base . '/courses', $cnvs_api_params);
+
+	// echo $cnvs_base."/courses?access_token=".$cnvs_token."<br/>";
+
+	// make sure we actually received a winning response from Canvas
+	if( ! wp_remote_retrieve_response_code( $cnvs_courses_request ) == 200 ){
+		echo '<p>Canvas connection error! Please check <a href="wp-admin/options-general.php?page=prscnvs_setup">your Press+Canvas Settings</a> or try again.</p>';
+		$prscnvs_connection = 0; 
+		return;
+	} else { $prscnvs_connection = 1; }
+		
+	// json decode the request results
+	$cnvs_courselist = json_decode( wp_remote_retrieve_body( $cnvs_courses_request ), true );
+	
+	// Prepare to get the assignments for each course
+	// Change api parameters for assignments
+	$cnvs_api_params = array( 
 		'headers' => array(
 			'Authorization' => 'Bearer '.$cnvs_token
 			),
-		'body' => array(
+		'body' => array( 
 		'per_page' => '100',
 		'include[]' => 'submission'
 		)
 	);
 	
-	//print "<div>Select an assignment:</div>";
-	print "\n\t<ul class='cnvs_courses'>";
+	echo '<ul class="cnvs_courses">';
 	
-	//turn each assignment from the Canvas API response into an OPTION
+	// turn each assignment from the Canvas API response into an OPTION
 	
-	foreach ($cnvs_courselist as $cnvs_crs){
+	foreach ( $cnvs_courselist as $cnvs_crs ) {
 		//assignment counter
 		$i=0;
 		
 		$cnvs_assigns_list = NULL;
 		$cnvs_assignments_list = NULL;
-		print "\n\t<li>";
+		echo '<li>';
 
 		//get the list of assignments and decode
-		$cnvs_assignments_request = wp_remote_request( $cnvs_api_base."/courses/".$cnvs_crs['id']."/assignments", $cnvs_api_params);
-		$cnvs_assignments_list = json_decode(wp_remote_retrieve_body($cnvs_assignments_request),true);
+		$cnvs_assignments_request = wp_remote_request( $cnvs_api_base. '/courses/' . $cnvs_crs['id'] . '/assignments', $cnvs_api_params);
+		$cnvs_assignments_list = json_decode( wp_remote_retrieve_body( $cnvs_assignments_request ),true);
 		
-		
-		//check to see if there are assignments
-		if($cnvs_assignments_list !== NULL){
-			$cnvs_assigns_list .= "\n\t\t<ul class='cnvs_assignments'>";
-			//print "\n\t\t<ul class='cnvs_assignments'>";
+		//check for assignments
+		if( $cnvs_assignments_list !== NULL ){
+			$cnvs_assigns_list .= '<ul class="cnvs_assignments">';
 			
 			//loop through each assignment and get stuff
-			foreach ($cnvs_assignments_list as $cnvs_asn){
-				/*** TODO ***/
+			foreach ( $cnvs_assignments_list as $cnvs_asn ){
+				/* TODO
 				// Use HTML5's localstorage to save the courses and assignments as a single string
-		
-				// make sure it's not locked for this user
-				if ($cnvs_asn['locked_for_user'] == false 
-					&& in_array("online_url",$cnvs_asn['submission_types'])
-					){
+				*/
+				
+				// make sure the assignment's not locked for this user
+				if ( $cnvs_asn['locked_for_user'] == false 
+					&& in_array( "online_url", $cnvs_asn['submission_types'] )
+					) {
 					
 					$i++;
 					$cnvs_asn_name = $cnvs_asn['name'];
 					//make a shorter name
-					if(strlen($cnvs_asn['name'])>20){
-						$cnvs_asn_name = substr($cnvs_asn['name'],0,20)."...";
+					if ( strlen( $cnvs_asn['name'] ) > 20 ) {
+						$cnvs_asn_name = substr( $cnvs_asn['name'], 0, 20 ) . '...';
 					}
 	
 					// Output the element
-					$cnvs_assigns_list .= "\n\t\t\t<li>";
-					//print "\n\t\t\t<li>";
+					$cnvs_assigns_list .= '<li>';
 					//var_dump($cnvs_asn);
 					
-					$cnvs_assigns_list .= "<input class=\"prcnvs_assign_radio\" type=\"radio\" name=\"prcnvs_assign\" id=\"prcnvs_assign-".$i."\" value=\"".$cnvs_crs['id']."-".$cnvs_asn['id']."\" disabled>";
-					//print "<input class=\"prcnvs_assign_radio\" type=\"radio\" name=\"prcnvs_assign\" id=\"prcnvs_assign-".$i."\" value=\"".$cnvs_crs['id']."-".$cnvs_asn['id']."\" disabled>";
-					
-					
-					$cnvs_assigns_list .= " <label for=\"prcnvs_assign-".$i."\"";
-					//print " <label for=\"prcnvs_assign-".$i."\"";
-					
-					/* TO DO */
-					//mark submitted assignments
-					
-					if($cnvs_asn['has_submitted_submissions']==1){
-						//echo $cnvs_asn['has_submitted_submissions'];
-						$cnvs_assigns_list .= " style=\"text-decoration: line-through\"";
-						//print " style=\"text-decoration: line-through\"";
-					}
-					$cnvs_assigns_list .= "><a href=\"".$cnvs_asn['html_url']."\" target=\"_blank\">".$cnvs_asn_name."</a>";
-					//print "><a href=\"".$cnvs_asn['html_url']."\" target=\"_blank\">".$cnvs_asn_name."</a>";
-					//create human-readable date
-					if (isset($cnvs_asn['due_at'])){
-						$due_date = substr($cnvs_asn['due_at'],0,10);
-						$cnvs_assigns_list .= " due ".$due_date;
-						//print " due ".$due_date;
-					}
-					$cnvs_assigns_list .= "</label></li>";
-					//print "</label></li>";
-				}//end if assignment	 
-			}//end assignment loop
+					$cnvs_assigns_list .= '<input class="prcnvs_assign_radio" type="radio" name="prcnvs_assign" id="prcnvs_assign-'.$i.'" value="' . $cnvs_crs['id'] . '-' . $cnvs_asn['id'] . '" disabled>';
 		
-		$cnvs_assigns_list .= "\n\t\t</ul>\n\t</li>";
-		//print "\n\t\t</ul>\n\t</li>";
-		}
-		print "<a href='https://".$cnvs_url."/courses/".$cnvs_crs['id']."' target='_blank' style='color:inherit; text-decoration:none;";
-		if ($i == 0){ 
-			print " opacity: 0.66;";
-		}
-		print "'>";
+					$cnvs_assigns_list .= ' <label for="prcnvs_assign-' . $i . '"';
+					
+					/* TODO
+					// Use CSS class instead of inline style 
+					*/
+					// Mark assignments that have already been submitted
+					if ( $cnvs_asn['has_submitted_submissions'] == 1 ) {
+						$cnvs_assigns_list .= ' style="text-decoration: line-through"';
+					}
+					
+					$cnvs_assigns_list .= '><a href="' . $cnvs_asn['html_url'] . '" target="_blank">' . $cnvs_asn_name . '</a>';
+					
+					//create human-readable date for the assass
+					$due_date = substr( $cnvs_asn['due_at'], 0, 10 );
+					$cnvs_assigns_list .= ' due ' . $due_date;
+					//} // end if assignment not locked for this user
+					
+					$cnvs_assigns_list .= '</label></li>';
+					
+				} //end if assignment	 
+			} //end assignment loop
 		
-		//Short course names if necessary
-		if(strlen($cnvs_crs['name'])>28){
-			$cnvs_crs_name = substr($cnvs_crs['name'],0,25)."...";
-		} else { $cnvs_crs_name = $cnvs_crs['name'];}
-		print $cnvs_crs_name . "</a>";
+		$cnvs_assigns_list .= '</ul></li>';
+		}
+		
+		// Output a convenient hyperlink to the course
+		echo '<a href="https://' . $cnvs_url . '/courses/' . $cnvs_crs['id'] .'" target="_blank" style="color:inherit; text-decoration: none;';
+		
+		/* TODO
+		// Use CSS class instead of inline style 
+		*/
+		//indicate if a course has no relevant assignments
+		if ( $i == 0 ){ 
+			echo ' opacity: 0.66;';
+		}
+		echo '">';
+		
+		//Shorten course names if necessary
+		if ( strlen( $cnvs_crs['name']) > 28 ){
+			$cnvs_crs_name = substr( $cnvs_crs['name'], 0, 25 ) . '...';
+		} else { $cnvs_crs_name = $cnvs_crs['name']; }
+		echo $cnvs_crs_name . '</a>';
+		
+		/* TODO
+		// ???
+		*/
 		echo $cnvs_assigns_list;
 		
 		/*
-		if ($i ==0 ) {
-				print "<em>No URL assignments</em>";
-			}*/
-	print "</li>";
+		if ( $i ==0 ) {
+				echo '<em>No URL assignments</em>';
+			}
+		*/
+	echo '</li>';
 	} //end course loop
-	print "\n</ul>";
+	echo '</ul>';
 	die();
 }
 
 /*
-//add the Press+Canvas box to the admin page for Posts
+// add the Press+Canvas box to the admin page for Posts
  */
+ 
 function prcnvs_add_meta_box() {
 	global $prcnvs, $cnvs_url, $cnvs_token;
 	//get the Canvas URL set in Press+Canvas Settings
@@ -311,6 +321,7 @@ function prcnvs_add_meta_box() {
 	'prcnvs_meta_box', 'post', 'side');
 }
 add_action('admin_init', 'prcnvs_add_meta_box');
+
 
 /**
  * When the post is saved, submit to Canvas Assignment
@@ -324,7 +335,10 @@ function prcnvs_meta_box_data($post_id) {
 	 * because the save_post action can be triggered at other times.
 	 */
 
-/*
+	/* TODO
+	// Determine if nonce usage is advisable here
+	*/
+	/*
 	// Check if our nonce is set.
 	if ( ! isset( $_POST['prcnvs_meta_box_nonce'] ) ) {
 		return;
@@ -335,7 +349,7 @@ function prcnvs_meta_box_data($post_id) {
 	if ( ! wp_verify_nonce( $_POST['prcnvs_meta_box_nonce'], 'prcnvs_meta_box' ) ) {
 		return;
 	}
-*/
+	*/
 
 	// If this is an autosave, our form has not been submitted, so we don't want to do anything.
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -344,23 +358,18 @@ function prcnvs_meta_box_data($post_id) {
 	
 	// Check the user's permissions.
 	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
-
 		if ( ! current_user_can( 'edit_page', $post_id ) ) {
 			return;
 		}
 
 	} else {
-
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 	}
 	
-	
-	/* OK, it's safe for us to save the data now. */
-	
-	
-	// Make sure that our assignment id is set.
+	// OK, it's safe for us to save the data
+	// Make sure that our Canvas assignment id is set
 	if ( ! isset( $_POST['prcnvs_assign'] ) ) {
 		return;
 	}
@@ -368,8 +377,8 @@ function prcnvs_meta_box_data($post_id) {
 	//var_dump($_POST);
 	//echo $_POST['prcnvs_assign_list'];
 	
-	//the url of this post
-	if(!isset($permalink)){
+	// Identify the url of this post
+	if ( ! isset( $permalink ) ){
 		//If the post hasn't been saved yet it doesn't have a permalink
 		$prcnvs_link = $post->guid;
 	} else {
@@ -377,19 +386,19 @@ function prcnvs_meta_box_data($post_id) {
 	}
 	
 	//basic Canvas API parameters
-	$cnvs_api_base = "https://".$cnvs_url."/api/v1";
+	$cnvs_api_base = 'https://' . $cnvs_url . '/api/v1';
 	
 	//split course id from assign id
-	$cnvs_ids = explode("-",$_POST['prcnvs_assign']);
+	$cnvs_ids = explode( "-", $_POST['prcnvs_assign'] );
 	$cnvs_crs_id = $cnvs_ids[0];
 	$cnvs_assn_id = $cnvs_ids[1];
 	
-	
-	$cnvs_api_submit = $cnvs_api_base."/courses/".$cnvs_crs_id."/assignments/".$cnvs_assn_id."/submissions";
+	// set up for the Canvas Submission API
+	$cnvs_api_submit = $cnvs_api_base . '/courses/' . $cnvs_crs_id . '/assignments/' 
+	.$cnvs_assn_id . '/submissions';
 	//echo $cnvs_api_submit; 
 	//echo $prcnvs_link;
 	
-
 	//set API parameters
 	$cnvs_submit_params = array(
 		'headers' => array(
@@ -401,15 +410,20 @@ function prcnvs_meta_box_data($post_id) {
 		)
 	);
 			
-		//set up the Canvas API Courses request using WP's HTTP API
+		// set up the Canvas API Courses request using WP's HTTP API
 		$cnvs_submit_request = wp_remote_post( $cnvs_api_submit, $cnvs_submit_params);
 		$cnvs_submit_response = json_decode(wp_remote_retrieve_body($cnvs_submit_request),true);
+		
+		/* TODO
+		// Updated msg on Post
+		*/
 		
 		add_filter( 'post_updated_messages', 'rw_post_updated_messages' );
 
 		//var_dump($cnvs_submit_response);
-		//***TO DO***
-		//check status and post a message
+		/* TODO
+		// check status and post a message
+		*/
 		/*
 		if(wp_remote_retrieve_response_code($cnvs_request)==200){
 			_e('Post URL submitted to Canvas', 'prcanvas_meta_box' ); //actually not sure of the WP convention here for 2nd val 
@@ -419,16 +433,17 @@ function prcnvs_meta_box_data($post_id) {
 		*/
 }
 
-add_action('save_post', 'prcnvs_meta_box_data' );
+add_action( 'save_post', 'prcnvs_meta_box_data' );
 
 
 /*
 //Press+Canvas Setup Menus & Options
  */
  
-//***TO DO ***
-//Validate Canvas URL
-    
+/* TODO
+//Validate Canvas domain and token
+*/
+
 add_action( 'admin_menu', 'prcnvs_menu' );
 
 function prcnvs_menu() {
@@ -439,59 +454,76 @@ function prcnvs_options() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
+	
 	global $wpdb, $prcnvs, $wp_version;
 	
-	//get the WP-stored options needed to make API requests
+	//get the WP-stored options needed to make Canvas API requests
 	$cnvs_url = get_option('cnvs_url');
 	$cnvs_token = get_option('cnvs_token');
 	
 	//if submitted val
-	if (isset($_POST['cnvs_submit_hidden'])) {
-		//var_dump($_POST);
-	//get just the host of the url
-		if(strpos($_POST['cnvs_url'], "http") !== false ){
-			$cnvs_this_url = parse_url($_POST['cnvs_url']);
+	if ( isset( $_POST['cnvs_submit_hidden'] ) ) {
+		// var_dump($_POST);
+		// get just the host of the url
+		if( strpos( $_POST['cnvs_url'], "http" ) !== false ){
+			$cnvs_this_url = parse_url( $_POST['cnvs_url'] );
 			$cnvs_this_url = $cnvs_this_url['host'];
 		} else { $cnvs_this_url = $_POST['cnvs_url']; }
+		
+		// update both values in WP db
 		update_option( 'cnvs_url', $cnvs_this_url );
 		update_option( 'cnvs_token', ($_POST['cnvs_token']) );
 		?>
+	
 		<div class="updated"><p><strong>
-		<?php 
-		_e('Token saved for ', 'prscanvas_setup' ); 
+	
+		<?php
+		_e( 'Token saved for ', 'prscanvas_setup' ); 
 		echo $cnvs_this_url;
 		?>
+		
 		<p>That's it! You will now see a new Press+Canvas widget when editing a post that will let you choose a Canvas assignment.</p>
 
 		</strong></p></div>
+	
 	<?php
 
 	}
     // Now display the settings editing screen
-    echo "<h2>" . __( 'Press+Canvas Setup', 'prcnvs_setup' ) . "</h2>";
+    echo '<h2>' . __( 'Press+Canvas Setup', 'prcnvs_setup' ) . '</h2>';
     ?>
     
 	<p>Press+Canvas is made for students. It lets you automatically submit the URL of any post directly to your school's <a href='http://canvaslms.com'>Canvas</a> LMS when you publish or update it.</p>
+	
 	<p><strong style='color:red'>Warning:</strong> Press+Canvas is very experimental. <strong>Do not</strong> depend on Press+Canvas to turn your assignments in on time untill you have tested it thoroughly.</p>
+	
 	<div style='float:right; font-size: 80%; max-width: 30%; margin: 0 1em 1em 1em'>
-	<a href='<?php echo plugins_url( 'images/canvas_generate_token.png', __FILE__ );?>'><img src='<?php echo plugins_url( 'images/canvas_generate_token.png', __FILE__ );?>' style='max-width: 100%; display:block;' /></a>
-	Within Canvas, <a target='_blank' href='https://guides.instructure.com/m/4214/l/40399-how-do-i-obtain-an-api-access-token'>generate an access token</a> via your profile Settings.</div>
+		<a href='<?php echo plugins_url( 'images/canvas_generate_token.png', __FILE__ );?>'><img src='<?php echo plugins_url( 'images/canvas_generate_token.png', __FILE__ );?>' style='max-width: 100%; display:block;' /></a>
+		Within Canvas, <a target='_blank' href='https://guides.instructure.com/m/4214/l/40399-how-do-i-obtain-an-api-access-token'>generate an access token</a> via your profile Settings.</div>
 	
 	<p>You need just 2 things to set up Press+Canvas:</p>
+	
 	<ol>
 		<li>The URL of your school's Canvas account</li>
 		<li>An Access Token (<a target='_blank' class='prcnvs_exturl' href='https://guides.instructure.com/m/4214/l/40399-how-do-i-obtain-an-api-access-token'>how to generate one</a>).</p>
 	</ol>
 	
 	<form name="prcnvs_setup_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI'] ); ?>">
+	
 	<input type="hidden" name="cnvs_submit_hidden" value="Y">
 
 	<fieldset class='options' style='margin: 1.5em;'>
+	
 		<div>Canvas URL: <input type='text' name='cnvs_url' style='width:22em' value='https://<?php echo (get_option ('cnvs_url')); ?>'/></div>
+	
 		<div>Access Token: <input type='password' name='cnvs_token' style='width:26em' value='<?php echo (get_option ('cnvs_token')); ?>'/></div>
+	
 		</fieldset>
+	
 		<input type="submit" name="Submit" value="Update Options" />
+	
 	</form>
+	
 	<?php
 } // End Press+Canvas Settings Menus & Options
 ?>
