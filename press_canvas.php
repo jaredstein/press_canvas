@@ -37,7 +37,7 @@ Support file submission by converting post to PDF
 */
  
 /* Preliminary plugin setup */
-define('PRCNVS_VERSION', '0.1');
+define('PRCNVS_VERSION', '0.2');
 
 //language
 load_plugin_textdomain('press_canvas', false, dirname(plugin_basename(__FILE__)) . '/language');
@@ -68,7 +68,7 @@ $prcnvs_db_version = "0.01";
  */
 function prcnvs_install_data() {
    global $wpdb;
-   $welcome_text = "Congratulations, installation of this plugin is complete!";
+   $welcome_text = 'Congratulations, installation of this plugin is complete!';
   }
 
 register_activation_hook(__FILE__,'prcnvs_install');
@@ -261,9 +261,13 @@ function prcnvs_course_assignments($post){
 					
 					$cnvs_assigns_list .= '><a href="' . $cnvs_asn['html_url'] . '" target="_blank">' . $cnvs_asn_name . '</a>';
 					
-					//create human-readable date for the assass
+					//create human-readable date for the assignment
+					$cnvs_assigns_list .= '<span style="font-size: 75%">';
 					$due_date = substr( $cnvs_asn['due_at'], 0, 10 );
-					$cnvs_assigns_list .= ' due ' . $due_date;
+					 if ( isset( $cnvs_asn['due_at'] )) { 
+					 	$cnvs_assigns_list .= ' due ' . $due_date; 
+					 	} else { $cnvs_assigns_list .= ' no due date'; }
+					 $cnvs_assigns_list .= '</span>';
 					//} // end if assignment not locked for this user
 					
 					$cnvs_assigns_list .= '</label></li>';
