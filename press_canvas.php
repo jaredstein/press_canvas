@@ -57,22 +57,22 @@ else if (is_file(trailingslashit(ABSPATH.PLUGINDIR).'press_canvas/press_canvas.p
 
 /* Install Press+Canvas */
 
-global $prcnvs_db_version;
+global $prscnvs_db_version;
 
-$prcnvs_db_version = "0.01";
+$prscnvs_db_version = "0.01";
 
 /**
  * Install Press+Canvas
  *
  * 
  */
-function prcnvs_install_data() {
+function prscnvs_install_data() {
    global $wpdb;
    $welcome_text = 'Congratulations, installation of this plugin is complete!';
   }
 
-register_activation_hook(__FILE__,'prcnvs_install');
-register_activation_hook(__FILE__,'prcnvs_install_data');
+register_activation_hook(__FILE__,'prscnvs_install');
+register_activation_hook(__FILE__,'prscnvs_install_data');
 
 
 /**
@@ -81,7 +81,7 @@ register_activation_hook(__FILE__,'prcnvs_install_data');
  * @param int $hook WP stuff for the current page
  */
  
-function prcnvs_load_scripts($hook) {
+function prscnvs_load_scripts($hook) {
 	//only load this on edit or post of pages
 	if( $hook != 'edit.php' && $hook != 'post.php' && $hook != 'post-new.php' ) 
 		return;
@@ -90,7 +90,7 @@ function prcnvs_load_scripts($hook) {
 	wp_enqueue_script( 'jquery' );
 
 	// embed the javascript file that makes the AJAX request
-	wp_enqueue_script( 'cnvs_ajax_request', plugin_dir_url( __FILE__ ) . 'js/prcnvs_ajax.js', array( 'jquery' ) );
+	wp_enqueue_script( 'cnvs_ajax_request', plugin_dir_url( __FILE__ ) . 'js/prscnvs_ajax.js', array( 'jquery' ) );
 
 	// declare the URL to the WP file that handles the Ajax reqs (wp-admin/admin-ajax.php)
 	// localize_script lets us pass values into JavaScript object properties, since PHP 
@@ -99,7 +99,7 @@ function prcnvs_load_scripts($hook) {
 }
 
 // WP add this function in
-add_action( 'admin_enqueue_scripts', 'prcnvs_load_scripts' );
+add_action( 'admin_enqueue_scripts', 'prscnvs_load_scripts' );
 
 
 /**
@@ -108,10 +108,10 @@ add_action( 'admin_enqueue_scripts', 'prcnvs_load_scripts' );
  * @param int $hook WP stuff for the current page
  */
  
-function prcnvs_meta_box($hook) {
+function prscnvs_meta_box($hook) {
 		
 	// Ensure our variables reference global variables
-	global $prcnvs, $post, $prcnvs_link;
+	global $prscnvs, $post, $prscnvs_link;
 	
 	//var_dump($post);
 	
@@ -123,26 +123,26 @@ function prcnvs_meta_box($hook) {
 	// Designate the url of this Post, either permalink or GUID
 	if(!isset($permalink)){
 		//If the post hasn't been saved yet it doesn't have a permalink
-		$prcnvs_link = $post->guid;
+		$prscnvs_link = $post->guid;
 	} else {
-		$prcnvs_link = $permalink;
+		$prscnvs_link = $permalink;
 	}
 	
 	//Create the HTML for the Press+Canvas form elements
 
 	?>
-	<input type="checkbox" name="prcnvs_submit_url" id="prcnvs_submit_url" value="prcnvs_submit" 
+	<input type="checkbox" name="prscnvs_submit_url" id="prscnvs_submit_url" value="prscnvs_submit" 
 	disabled />
 	<?php
-	echo '<label for="prcnvs_submit_url">'.__('Submit this post to Canvas?', 'press_canvas').'</label>';
+	echo '<label for="prscnvs_submit_url">'.__('Submit this post to Canvas?', 'press_canvas').'</label>';
 	?>
 	
-	<div id="prcnvs_wait" style="margin: .5em 0; font-size: 80%; font-style: italic; color: gray; display:none">
+	<div id="prscnvs_wait" style="margin: .5em 0; font-size: 80%; font-style: italic; color: gray; display:none">
 	<img src="<?php echo admin_url('/images/wpspin_light.gif'); ?>" class="waiting" alt="waiting" />
 	 loading Canvas assignments -- this may take a while if you have a lot!
 	</div>
 
-	<div id="prcnvs_assign_list">
+	<div id="prscnvs_assign_list">
 	</div>
 	<?php
 }
@@ -150,14 +150,14 @@ function prcnvs_meta_box($hook) {
 
 // Tell WP to use the WP Ajax for the action defined in the Javascript
 // Using the PHP function in this page
-add_action( 'wp_ajax_prcnvs_get_assignments', 'prcnvs_course_assignments' );
+add_action( 'wp_ajax_prscnvs_get_assignments', 'prscnvs_course_assignments' );
 
 //Set up the Press+Canvas function to be called by Ajax
-function prcnvs_course_assignments($post){
-	global $prcnvs, $prcnvs_link, $cnvs_url, $cnvs_token, $cnvs_api_base;
+function prscnvs_course_assignments($post){
+	global $prscnvs, $prscnvs_link, $cnvs_url, $cnvs_token, $cnvs_api_base;
 
 	// Add an nonce field so we can check for it later.
-	//wp_nonce_field( 'prcnvs_meta_box', 'prcnvs_meta_box_nonce' );
+	//wp_nonce_field( 'prscnvs_meta_box', 'prscnvs_meta_box_nonce' );
 
 	//basic Canvas API parameters
 	$cnvs_api_base = "https://".$cnvs_url."/api/v1";
@@ -247,9 +247,9 @@ function prcnvs_course_assignments($post){
 					$cnvs_assigns_list .= '<li>';
 					//var_dump($cnvs_asn);
 					
-					$cnvs_assigns_list .= '<input class="prcnvs_assign_radio" type="radio" name="prcnvs_assign" id="prcnvs_assign-'.$i.'" value="' . $cnvs_crs['id'] . '-' . $cnvs_asn['id'] . '" disabled>';
+					$cnvs_assigns_list .= '<input class="prscnvs_assign_radio" type="radio" name="prscnvs_assign" id="prscnvs_assign-'.$i.'" value="' . $cnvs_crs['id'] . '-' . $cnvs_asn['id'] . '" disabled>';
 		
-					$cnvs_assigns_list .= ' <label for="prcnvs_assign-' . $i . '"';
+					$cnvs_assigns_list .= ' <label for="prscnvs_assign-' . $i . '"';
 					
 					/* TODO
 					// Use CSS class instead of inline style 
@@ -316,15 +316,15 @@ function prcnvs_course_assignments($post){
 // add the Press+Canvas box to the admin page for Posts
  */
  
-function prcnvs_add_meta_box() {
-	global $prcnvs, $cnvs_url, $cnvs_token;
+function prscnvs_add_meta_box() {
+	global $prscnvs, $cnvs_url, $cnvs_token;
 	//get the Canvas URL set in Press+Canvas Settings
 	$cnvs_url = get_option('cnvs_url');
 	$cnvs_token = get_option('cnvs_token');
-	add_meta_box('prcnvs_post_form', __('Press+Canvas '.$cnvs_url, 'press_canvas'), 
-	'prcnvs_meta_box', 'post', 'side');
+	add_meta_box('prscnvs_post_form', __('Press+Canvas '.$cnvs_url, 'press_canvas'), 
+	'prscnvs_meta_box', 'post', 'side');
 }
-add_action('admin_init', 'prcnvs_add_meta_box');
+add_action('admin_init', 'prscnvs_add_meta_box');
 
 
 /**
@@ -332,8 +332,8 @@ add_action('admin_init', 'prcnvs_add_meta_box');
  *
  * @param int $post_id The ID of the post being saved.
  */
-function prcnvs_meta_box_data($post_id) {
-	global $post, $prcnvs_link, $cnvs_api_base, $cnvs_url, $cnvs_token;
+function prscnvs_meta_box_data($post_id) {
+	global $post, $prscnvs_link, $cnvs_api_base, $cnvs_url, $cnvs_token;
 	/*
 	 * We need to verify this came from our screen and with proper authorization,
 	 * because the save_post action can be triggered at other times.
@@ -344,13 +344,13 @@ function prcnvs_meta_box_data($post_id) {
 	*/
 	/*
 	// Check if our nonce is set.
-	if ( ! isset( $_POST['prcnvs_meta_box_nonce'] ) ) {
+	if ( ! isset( $_POST['prscnvs_meta_box_nonce'] ) ) {
 		return;
 	}
 
 
 	// Verify that the nonce is valid.
-	if ( ! wp_verify_nonce( $_POST['prcnvs_meta_box_nonce'], 'prcnvs_meta_box' ) ) {
+	if ( ! wp_verify_nonce( $_POST['prscnvs_meta_box_nonce'], 'prscnvs_meta_box' ) ) {
 		return;
 	}
 	*/
@@ -374,26 +374,26 @@ function prcnvs_meta_box_data($post_id) {
 	
 	// OK, it's safe for us to save the data
 	// Make sure that our Canvas assignment id is set
-	if ( ! isset( $_POST['prcnvs_assign'] ) ) {
+	if ( ! isset( $_POST['prscnvs_assign'] ) ) {
 		return;
 	}
 	
 	//var_dump($_POST);
-	//echo $_POST['prcnvs_assign_list'];
+	//echo $_POST['prscnvs_assign_list'];
 	
 	// Identify the url of this post
 	if ( ! isset( $permalink ) ){
 		//If the post hasn't been saved yet it doesn't have a permalink
-		$prcnvs_link = $post->guid;
+		$prscnvs_link = $post->guid;
 	} else {
-		$prcnvs_link = $permalink;
+		$prscnvs_link = $permalink;
 	}
 	
 	//basic Canvas API parameters
 	$cnvs_api_base = 'https://' . $cnvs_url . '/api/v1';
 	
 	//split course id from assign id
-	$cnvs_ids = explode( "-", $_POST['prcnvs_assign'] );
+	$cnvs_ids = explode( "-", $_POST['prscnvs_assign'] );
 	$cnvs_crs_id = $cnvs_ids[0];
 	$cnvs_assn_id = $cnvs_ids[1];
 	
@@ -401,7 +401,7 @@ function prcnvs_meta_box_data($post_id) {
 	$cnvs_api_submit = $cnvs_api_base . '/courses/' . $cnvs_crs_id . '/assignments/' 
 	.$cnvs_assn_id . '/submissions';
 	//echo $cnvs_api_submit; 
-	//echo $prcnvs_link;
+	//echo $prscnvs_link;
 	
 	//set API parameters
 	$cnvs_submit_params = array(
@@ -410,7 +410,7 @@ function prcnvs_meta_box_data($post_id) {
 			),
 		'body' => array(
 			'submission[submission_type]' => 'online_url',
-			'submission[url]' => $prcnvs_link
+			'submission[url]' => $prscnvs_link
 		)
 	);
 			
@@ -437,7 +437,7 @@ function prcnvs_meta_box_data($post_id) {
 		*/
 }
 
-add_action( 'save_post', 'prcnvs_meta_box_data' );
+add_action( 'save_post', 'prscnvs_meta_box_data' );
 
 
 /*
@@ -448,18 +448,18 @@ add_action( 'save_post', 'prcnvs_meta_box_data' );
 //Validate Canvas domain and token
 */
 
-add_action( 'admin_menu', 'prcnvs_menu' );
+add_action( 'admin_menu', 'prscnvs_menu' );
 
-function prcnvs_menu() {
-	add_options_page( 'Press+Canvas Setup', 'Press+Canvas', 'manage_options', 'prscnvs_setup', 'prcnvs_options' );
+function prscnvs_menu() {
+	add_options_page( 'Press+Canvas Setup', 'Press+Canvas', 'manage_options', 'prscnvs_setup', 'prscnvs_options' );
 }
 
-function prcnvs_options() {
+function prscnvs_options() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
 	
-	global $wpdb, $prcnvs, $wp_version;
+	global $wpdb, $prscnvs, $wp_version;
 	
 	//get the WP-stored options needed to make Canvas API requests
 	$cnvs_url = get_option('cnvs_url');
@@ -494,7 +494,7 @@ function prcnvs_options() {
 
 	}
     // Now display the settings editing screen
-    echo '<h2>' . __( 'Press+Canvas Setup', 'prcnvs_setup' ) . '</h2>';
+    echo '<h2>' . __( 'Press+Canvas Setup', 'prscnvs_setup' ) . '</h2>';
     ?>
     
 	<p>Press+Canvas is made for students. It lets you automatically submit the URL of any post directly to your school's <a href='http://canvaslms.com'>Canvas</a> LMS when you publish or update it.</p>
@@ -509,10 +509,10 @@ function prcnvs_options() {
 	
 	<ol>
 		<li>The URL of your school's Canvas account</li>
-		<li>An Access Token (<a target='_blank' class='prcnvs_exturl' href='https://guides.instructure.com/m/4214/l/40399-how-do-i-obtain-an-api-access-token'>how to generate one</a>).</p>
+		<li>An Access Token (<a target='_blank' class='prscnvs_exturl' href='https://guides.instructure.com/m/4214/l/40399-how-do-i-obtain-an-api-access-token'>how to generate one</a>).</p>
 	</ol>
 	
-	<form name="prcnvs_setup_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI'] ); ?>">
+	<form name="prscnvs_setup_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI'] ); ?>">
 	
 	<input type="hidden" name="cnvs_submit_hidden" value="Y">
 
