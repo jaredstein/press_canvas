@@ -1,5 +1,5 @@
 # press_canvas
-Students with WordPress sites can submit their blog Posts directly to the Canvas LMS to fulfill a course assignment.
+Students with WordPress sites can submit their blog posts directly to the Canvas LMS to fulfill a course assignment.
 
 Note: The plugin works, but is by no means clean or refined at this point. In fact, you'll probably hate my code. Please consider it *beta*.
 
